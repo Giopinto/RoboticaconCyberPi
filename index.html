@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robótica con CyberPi · 10° Grado</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --yellow:  #FFD600;
+  --orange:  #FF6B35;
+  --pink:    #FF3D9A;
+  --purple:  #7B2FFF;
+  --blue:    #1E90FF;
+  --cyan:    #00D4FF;
+  --green:   #00C853;
+  --lime:    #AEEA00;
+  --white:   #FFFFFF;
+  --dark:    #1A1A2E;
+  --card-bg: #FFFFFF;
+  --body-bg: #F0F4FF;
+  --font-h:  'Fredoka One', cursive;
+  --font-b:  'Nunito', sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-b);
+  background: var(--body-bg);
+  color: var(--dark);
+  overflow-x: hidden;
+  font-size: 1.25rem;
+}
+
+/* ─── CURSOR ─── */
+* { cursor: none !important; }
+#cursor {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--pink);
+  position: fixed; z-index: 9999;
+  pointer-events: none;
+  transform: translate(-50%,-50%);
+  transition: transform 0.1s, background 0.3s;
+  mix-blend-mode: multiply;
+}
+
+/* ─── CONFETTI DOTS BG ─── */
+.confetti-bg {
+  position: fixed; inset:0; z-index:0; pointer-events:none;
+  overflow: hidden;
+}
+.dot {
+  position: absolute;
+  border-radius: 50%;
+  animation: floatDot var(--t) ease-in-out infinite alternate;
+}
+@keyframes floatDot {
+  from { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+  to   { transform: translateY(-30px) rotate(180deg); opacity: 1; }
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  background: var(--purple);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 64px;
+  box-shadow: 0 4px 20px rgba(123,47,255,0.4);
+}
+.nav-brand {
+  font-family: var(--font-h);
+  font-size: 1.4rem;
+  color: var(--yellow);
+  display: flex; align-items: center; gap: 10px;
+  letter-spacing: 0.04em;
+}
+.nav-brand .chip {
+  background: var(--yellow);
+  color: var(--purple);
+  font-size: 0.65rem;
+  font-family: var(--font-b);
+  font-weight: 900;
+  padding: 2px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.1em;
+}
+.nav-links { display:flex; gap:20px; list-style:none; }
+.nav-links a {
+  text-decoration:none;
+  color: rgba(255,255,255,0.8);
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--yellow); }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 100px 24px 60px;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset:0; z-index:0;
+  background: linear-gradient(135deg, #7B2FFF 0%, #1E90FF 50%, #00D4FF 100%);
+}
+/* Diagonal stripe */
+.hero-bg::after {
+  content:'';
+  position: absolute; bottom:-2px; left:0; right:0;
+  height: 85px;
+  background: var(--body-bg);
+  clip-path: polygon(0 60%, 100% 0, 100% 100%, 0 100%);
+}
+
+.hero-emoji {
+  font-size: 6rem;
+  margin-bottom: 20px;
+  animation: bounce 2s ease-in-out infinite;
+  position: relative; z-index:2;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.2));
+}
+@keyframes bounce {
+  0%,100%{ transform: translateY(0) rotate(-3deg); }
+  50%    { transform: translateY(-18px) rotate(3deg); }
+}
+.hero-grade {
+  position: relative; z-index:2;
+  background: var(--yellow);
+  color: var(--dark);
+  font-family: var(--font-b);
+  font-weight: 900;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 6px 22px;
+  border-radius: 100px;
+  margin-bottom: 20px;
+  display: inline-block;
+  animation: fadeUp 0.7s ease both;
+}
+.hero h1 {
+  position: relative; z-index:2;
+  font-family: var(--font-h);
+  font-size: clamp(2.6rem, 7vw, 5rem);
+  color: #fff;
+  line-height: 1.05;
+  margin-bottom: 16px;
+  text-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+  animation: fadeUp 0.7s 0.1s ease both;
+}
+.hero h1 span { color: var(--yellow); }
+.hero-sub {
+  position: relative; z-index:2;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: rgba(255,255,255,0.9);
+  font-weight: 600;
+  max-width: 560px;
+  margin-bottom: 36px;
+  animation: fadeUp 0.7s 0.2s ease both;
+}
+.hero-badges {
+  position: relative; z-index:2;
+  display: flex; gap:14px; flex-wrap: wrap; justify-content: center;
+  animation: fadeUp 0.7s 0.3s ease both;
+}
+.badge {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(15px);
+  border: 3px solid rgba(255,255,255,0.4);
+  color: #fff;
+  font-weight: 1000;
+  font-size: 1.4rem;
+  padding: 10px 20px;
+  border-radius: 50px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ─── SECTION SHELL ─── */
+.section {
+  position: relative; z-index:1;
+  padding: 80px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.section-full {
+  position: relative; z-index:1;
+  padding: 80px 0;
+}
+.section-full .inner { max-width:1100px; margin:0 auto; padding:0 24px; }
+
+.sec-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-b);
+  font-weight: 900;
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: var(--orange);
+  padding: 5px 16px;
+  border-radius: 100px;
+  margin-bottom: 16px;
+}
+h2.section-title {
+  font-family: var(--font-h);
+  font-size: clamp(2.3rem, 5vw, 3.6rem);
+  color: var(--dark);
+  margin-bottom: 12px;
+  line-height: 1.15;
+}
+.section-desc {
+  color: #555;
+  font-size: 1.35rem;
+  max-width: 620px;
+  margin-bottom: 48px;
+  font-weight: 600;
+}
+
+/* ─── DIVIDER ─── */
+.wave-divider {
+  width:100%; overflow:hidden; line-height:0;
+  position: relative; z-index:1;
+}
+.wave-divider svg { display:block; }
+
+/* ─── WHAT IS CYBERPI ─── */
+.what-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+@media(max-width:850px){ .what-grid { grid-template-columns:1fr; } }
+
+.cyberpi-visual {
+  background: linear-gradient(135deg, var(--purple) 0%, var(--blue) 100%);
+  border-radius: 24px;
+  padding: 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(123,47,255,0.35);
+}
+.cyberpi-visual::before {
+  content:'';
+  position:absolute; top:-40px; right:-40px;
+  width:160px; height:160px; border-radius:50%;
+  background: rgba(255,255,255,0.07);
+}
+.cyberpi-board {
+  background: #1a1a2e;
+  border: 3px solid var(--cyan);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  display: inline-block;
+  box-shadow: 0 0 30px rgba(0,212,255,0.4);
+}
+.board-label {
+  font-family: var(--font-h);
+  font-size: 1.6rem;
+  color: var(--cyan);
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
+}
+.board-leds {
+  display: flex; gap:8px; justify-content: center; margin-bottom: 16px;
+}
+.led {
+  width:14px; height:14px; border-radius:50%;
+  animation: ledBlink var(--d) ease-in-out infinite alternate;
+}
+@keyframes ledBlink { from{opacity:0.3; transform:scale(0.8)} to{opacity:1; transform:scale(1.2)} }
+.board-pins {
+  display: flex; gap:6px; justify-content: center; flex-wrap:wrap;
+}
+.pin {
+  width:8px; height:20px;
+  background: linear-gradient(to bottom, #FFD600, #FFA000);
+  border-radius: 2px;
+}
+.board-screen {
+  background: #00D4FF;
+  border-radius: 8px;
+  padding: 10px 20px;
+  margin: 14px 0;
+  font-family: var(--font-h);
+  font-size: 1.1rem;
+  color: #fff;
+  animation: screenPulse 2s ease-in-out infinite;
+}
+@keyframes screenPulse {
+  0%,100% { background: #00D4FF; }
+  50%      { background: #1E90FF; }
+}
+
+.feature-list { list-style: none; }
+.feature-list li {
+  display: flex; align-items: flex-start; gap:16px;
+  margin-bottom: 24px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.feature-list li:hover {
+  transform: translateX(6px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+.feat-icon {
+  font-size: 2.2rem; flex-shrink:0;
+  background: var(--body-bg);
+  width:56px; height:56px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+}
+.feat-title { font-weight:800; font-size:1.02rem; margin-bottom:6px; }
+.feat-desc  { font-size:1.05rem; color:#666; font-weight: 600; }
+
+/* ─── SPECS STRIP ─── */
+.specs-strip {
+  background: var(--yellow);
+  padding: 44px 24px;
+  position: relative; z-index:1;
+}
+.specs-strip .inner {
+  max-width:1200px; margin:0 auto;
+  display:flex; gap:24px; flex-wrap:wrap; justify-content:center;
+}
+.spec-item {
+  text-align:center;
+  background:#fff;
+  border-radius:16px;
+  padding:22px 32px;
+  min-width:140px;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
+  transition: transform 0.2s;
+}
+.spec-item:hover { transform: translateY(-6px); }
+.spec-val {
+  font-family: var(--font-h);
+  font-size: 2.2rem;
+  color: var(--purple);
+  display:block;
+}
+.spec-key {
+  font-size:0.85rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:#555;
+}
+
+/* ─── SENSORS SECTION ─── */
+.sensors-bg {
+  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+  padding: 80px 0;
+  position: relative; z-index:1;
+}
+.sensors-bg h2.section-title { color:#fff; }
+.sensors-bg .section-desc { color: rgba(255,255,255,0.6); }
+
+.sensors-grid {
+  /*display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;*/
+  display: grid;
+  /* Calcula el tamaño máximo para que solo quepan 4 columnas por fila */
+  grid-template-columns: repeat(auto-fit, minmax(200px, calc(25% - 14px)));
+  gap: 18px;
+}
+.sensor-card {
+  border-radius: 20px;
+  padding: 24px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+  cursor: pointer;
+}
+.sensor-card:hover {
+  transform: translateY(-8px) rotate(-1deg);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+.sensor-card::after {
+  content: '';
+  position: absolute; inset:0;
+  background: rgba(255,255,255,0.06);
+  opacity:0;
+  transition: opacity 0.2s;
+}
+.sensor-card:hover::after { opacity:1; }
+.sensor-emoji { font-size:2.8rem; margin-bottom:14px; display:block; }
+.sensor-card h3 { font-family:var(--font-h); font-size:1.5rem; margin-bottom:8px; }
+.sensor-card p { font-size:1rem; opacity:0.85; line-height:1.55; }
+
+/* ─── PROGRAMMING SECTION ─── */
+.prog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap:32px;
+  align-items:start;
+}
+@media(max-width:720px){ .prog-grid { grid-template-columns:1fr; } }
+
+.steps-list { display:flex; flex-direction:column; gap:18px; }
+.step {
+  display:flex; gap:18px; align-items:flex-start;
+  background:#fff;
+  border-radius:20px;
+  padding:20px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+  border-left: 5px solid var(--color, var(--purple));
+  transition: transform 0.2s;
+}
+.step:hover { transform: translateX(6px); }
+.step-num {
+  font-family:var(--font-h);
+  font-size:1.8rem;
+  color: var(--color, var(--purple));
+  flex-shrink:0;
+  width:48px; text-align:center;
+  line-height:1;
+}
+.step h4 { font-weight:800; font-size:0.95rem; margin-bottom:4px; }
+.step p  { font-size:0.84rem; color:#666; }
+
+/* Code block */
+.code-window {
+  background: #1A1A2E;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.code-titlebar {
+  background: #252540;
+  padding: 12px 20px;
+  display:flex; align-items:center; gap:8px;
+}
+.code-dot { width:12px; height:12px; border-radius:50%; }
+.code-title {
+  font-size:0.9rem;
+  color: rgba(255,255,255,0.5);
+  font-weight:700;
+  margin-left:8px;
+  letter-spacing:0.1em;
+}
+.code-body { padding:24px; font-size:0.88rem; line-height:1.9; }
+.c-kw   { color:#FF6B9D; font-weight:700; }
+.c-fn   { color:#00D4FF; }
+.c-str  { color:#AEEA00; }
+.c-num  { color:#FFD600; }
+.c-cmt  { color:rgba(255,255,255,0.3); font-style:italic; }
+.c-plain{ color:rgba(255,255,255,0.85); }
+
+.activities-bg {
+  background: linear-gradient(135deg, #FF6B35 0%, #FF3D9A 100%);
+  padding: 90px 0;
+  position:relative; z-index:1;
+}
+.activities-bg h2.section-title { color:#fff; text-shadow:2px 2px 0 rgba(0,0,0,0.1); }
+.activities-bg .section-desc { color:rgba(255,255,255,0.95); }
+.activities-bg .sec-tag { background:#fff; color:var(--orange); }
+
+.act-grid {
+  display: grid;
+  /* FUERZA LA CUADRÍCULA FIJA DE 3 COLUMNAS PARA QUEDAR 3 ARRIBA Y 3 ABAJO */
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 24px;
+}
+@media(max-width:950px){
+  .act-grid { grid-template-columns: repeat(2, 1fr); } /* Ajuste intermedio */
+}
+@media(max-width:650px){
+  .act-grid { grid-template-columns: 1fr; } /* Adaptable a teléfonos */
+}
+.act-card {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 24px;
+  padding: 32px 26px;
+  transition: transform 0.25s, background 0.25s;
+}
+.act-card:hover {
+  transform: translateY(-8px);
+  background: rgba(255,255,255,0.25);
+}
+.act-emoji { font-size:3.5rem; margin-bottom:18px; display:block; }
+.act-num {
+  font-family:var(--font-h);
+  font-size:0.85rem;
+  letter-spacing:0.2em;
+  color:rgba(255,255,255,0.8);
+  margin-bottom:8px;
+}
+.act-card h3 {
+  font-family:var(--font-h);
+  font-size:1.4rem;
+  color:#fff;
+  margin-bottom:12px;
+}
+.act-card p { font-size:1.1rem; color:rgba(255,255,255,0.95); line-height:1.6; margin-bottom:20px; font-weight: 600; }
+.act-tag {
+  display:inline-block;
+  background:rgba(255,255,255,0.25);
+  border-radius:100px;
+  padding:6px 16px;
+  font-size:0.85rem;
+  font-weight:800;
+  color:#fff;
+  letter-spacing:0.08em;
+}
+
+/* ─── QUIZ ─── */
+.quiz-outer {
+  background: var(--body-bg);
+  padding: 80px 24px;
+  position:relative; z-index:1;
+}
+.quiz-box {
+  max-width:680px; margin:0 auto;
+  background:#fff;
+  border-radius:28px;
+  padding:42px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+  border-top: 8px solid var(--purple);
+}
+.quiz-top {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:32px;
+}
+.quiz-top h3 {
+  font-family:var(--font-h);
+  font-size:1.3rem;
+  color:var(--purple);
+}
+.qprog-label {
+  font-weight:800;
+  font-size:0.78rem;
+  color:var(--purple);
+  letter-spacing:0.1em;
+}
+.qprog-bar {
+  height:8px;
+  background:#EDE9FE;
+  border-radius:100px;
+  overflow:hidden;
+  margin-top:4px;
+  width:120px;
+}
+.qprog-fill {
+  height:100%;
+  background: linear-gradient(90deg, var(--purple), var(--pink));
+  border-radius:100px;
+  transition: width 0.4s ease;
+  width:0%;
+}
+.q-question {
+  font-size:1.5rem;
+  font-weight:800;
+  margin-bottom:24px;
+  color:var(--dark);
+  min-height:52px;
+}
+.q-opts { display:flex; flex-direction:column; gap:12px; margin-bottom:24px; }
+.q-btn {
+  background: #F5F3FF;
+  border: 2px solid #DDD6FE;
+  color: var(--dark);
+  font-family: var(--font-b);
+  font-size:1.15rem;
+  font-weight:700;
+  padding:14px 20px;
+  border-radius:14px;
+  text-align:left;
+  cursor:pointer;
+  transition: all 0.2s;
+  display:flex; align-items:center; gap:12px;
+}
+.q-btn:hover:not(:disabled) {
+  background: #EDE9FE;
+  border-color: var(--purple);
+  transform: translateX(5px);
+}
+.q-btn .qbadge {
+  width:28px; height:28px; border-radius:50%;
+  background:#DDD6FE;
+  color:var(--purple);
+  font-size:0.9rem;
+  font-weight:900;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.q-btn.correct { background:#D1FAE5; border-color:var(--green); color:#065F46; }
+.q-btn.correct .qbadge { background:var(--green); color:#fff; }
+.q-btn.wrong   { background:#FFE4E6; border-color:#F43F5E; color:#9F1239; }
+.q-btn.wrong .qbadge { background:#F43F5E; color:#fff; }
+.q-btn:disabled { cursor:default; }
+
+.q-feedback {
+  font-size:1.1rem;
+  font-weight:700;
+  min-height:28px;
+  margin-bottom:20px;
+  padding:10px 16px;
+  border-radius:12px;
+}
+.q-feedback.ok  { background:#D1FAE5; color:#065F46; }
+.q-feedback.bad { background:#FFE4E6; color:#9F1239; }
+
+.q-next {
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  color:#fff;
+  font-family:var(--font-h);
+  font-size:1.1rem;
+  letter-spacing:0.05em;
+  border:none;
+  border-radius:14px;
+  padding:14px 36px;
+  cursor:pointer;
+  display:none;
+  box-shadow: 0 8px 24px rgba(123,47,255,0.35);
+  transition: transform 0.2s, opacity 0.2s;
+}
+.q-next:hover { transform:translateY(-3px); opacity:0.9; }
+
+.q-result { display:none; text-align:center; }
+.r-emoji { font-size:4.5rem; margin-bottom:12px; }
+.r-score {
+  font-family:var(--font-h);
+  font-size:4.5rem; 
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  margin-bottom:8px;
+}
+.r-msg { font-size:1.2rem; font-weight:700; color:#555; margin-bottom:28px; }
+.q-restart {
+  background:transparent;
+  border: 3px solid var(--purple);
+  color:var(--purple);
+  font-family:var(--font-h);
+  font-size:1.1rem;
+  padding:12px 32px;
+  border-radius:14px;
+  cursor:pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.q-restart:hover { background:var(--purple); color:#fff; }
+
+/* ─── GLOSSARY ─── */
+.glossary-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap:16px;
+}
+.glos-card {
+  background:#fff;
+  border-radius:18px;
+  padding:22px 20px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+  border-left: 5px solid var(--color, var(--cyan));
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.glos-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.12);
+}
+.glos-term {
+  font-family:var(--font-h);
+  font-size:1.05rem;
+  color:var(--color, var(--cyan));
+  margin-bottom:6px;
+}
+.glos-def { font-size:0.86rem; color:#555; line-height:1.6; font-weight:600; }
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--purple);
+  text-align:center;
+  padding:40px 24px;
+  position:relative; z-index:1;
+}
+.footer-emoji { font-size:2.5rem; margin-bottom:12px; }
+footer h3 {
+  font-family:var(--font-h);
+  font-size:1.4rem;
+  color:var(--yellow);
+  margin-bottom:8px;
+}
+footer p { color:rgba(255,255,255,0.7); font-size:0.88rem; font-weight:600; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.reveal {
+  opacity:0;
+  transform:translateY(28px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.on { opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- CONFETTI BG -->
+<div class="confetti-bg" id="confettiBg"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    🤖 CyberPi <span class="chip">10° GRADO</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#que-es">¿Qué es?</a></li>
+    <li><a href="#sensores">Sensores</a></li>
+    <li><a href="#programar">Programar</a></li>
+    <li><a href="#actividades">Actividades</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-emoji">🤖</div>
+  <div class="hero-grade">Introducción a la Robótica · 10° Grado</div>
+  <h1>¡Aprendemos<br><span>Robótica</span> con<br>CyberPi!</h1>
+  <p class="hero-sub">Descubre cómo programar, crear y experimentar con uno de los kits de robótica más emocionantes del mundo 🚀</p>
+  <div class="hero-badges">
+    <div class="badge">⚡ Programación</div>
+    <div class="badge">🔬 Sensores</div>
+    <div class="badge">🎮 Interactivo</div>
+    <div class="badge">💡 Proyectos reales</div>
+  </div>
+</div>
+
+<!-- WAVE -->
+<div class="wave-divider">
+  <svg viewBox="0 0 1440 60" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,30 C360,70 1080,-10 1440,30 L1440,60 L0,60 Z" fill="#F0F4FF"/>
+  </svg>
+</div>
+
+<!-- QUÉ ES CYBERPI -->
+<section class="section" id="que-es">
+  <div class="sec-tag reveal">🎯 01 — Conoce el kit</div>
+  <h2 class="section-title reveal">¿Qué es el <span style="color:var(--purple)">CyberPi</span>?</h2>
+  <p class="section-desc reveal">El CyberPi es una mini computadora programable creada por Makeblock, diseñada para aprender robótica, electrónica e inteligencia artificial de forma divertida.</p>
+
+  <div class="what-grid reveal">
+    <div class="cyberpi-visual">
+      <div style="font-family:'Fredoka One',cursive; font-size:1.1rem; color:rgba(255,255,255,0.7); margin-bottom:20px; letter-spacing:0.1em;">// CyberPi Board</div>
+      <div class="cyberpi-board">
+        <div class="board-label">CyberPi</div>
+        <div class="board-screen">📺 Pantalla TFT · 1.44"</div>
+        <div class="board-leds">
+          <div class="led" style="background:#FF3D9A; --d:0.8s"></div>
+          <div class="led" style="background:#FFD600; --d:1.1s"></div>
+          <div class="led" style="background:#00C853; --d:0.9s"></div>
+          <div class="led" style="background:#00D4FF; --d:1.3s"></div>
+          <div class="led" style="background:#FF6B35; --d:1.0s"></div>
+        </div>
+        <div style="color:rgba(0,212,255,0.6); font-size:0.72rem; margin:8px 0; font-weight:700; letter-spacing:0.1em;">LED RGB · BUZZER · WiFi</div>
+        <div class="board-pins">
+          <div class="pin"></div><div class="pin"></div><div class="pin"></div>
+          <div class="pin"></div><div class="pin"></div><div class="pin"></div>
+          <div class="pin"></div><div class="pin"></div>
+        </div>
+        <div style="color:rgba(255,255,255,0.4); font-size:0.7rem; margin-top:10px;">▷ Puerto USB-C · MicroSD</div>
+      </div>
+      <div style="margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <span style="background:rgba(255,255,255,0.15); border-radius:100px; padding:6px 16px; font-size:0.78rem; font-weight:700; color:#fff; border:1px solid rgba(255,255,255,0.3);">ESP32</span>
+        <span style="background:rgba(255,255,255,0.15); border-radius:100px; padding:6px 16px; font-size:0.78rem; font-weight:700; color:#fff; border:1px solid rgba(255,255,255,0.3);">MicroPython</span>
+        <span style="background:rgba(255,255,255,0.15); border-radius:100px; padding:6px 16px; font-size:0.78rem; font-weight:700; color:#fff; border:1px solid rgba(255,255,255,0.3);">mBlock 5</span>
+      </div>
+    </div>
+
+    <ul class="feature-list">
+      <li>
+        <div class="feat-icon">🧠</div>
+        <div>
+          <div class="feat-title">Procesador ESP32 de doble núcleo</div>
+          <div class="feat-desc">Potente chip con WiFi y Bluetooth integrados. Puede manejar IA, sonido y movimiento al mismo tiempo.</div>
+        </div>
+      </li>
+      <li>
+        <div class="feat-icon">📺</div>
+        <div>
+          <div class="feat-title">Pantalla TFT a color 1.44"</div>
+          <div class="feat-desc">Muestra imágenes, animaciones, datos de sensores y emojis. Todo lo que programes se ve aquí.</div>
+        </div>
+      </li>
+      <li>
+        <div class="feat-icon">🌈</div>
+        <div>
+          <div class="feat-title">LEDs RGB programables</div>
+          <div class="feat-desc">5 LEDs multicolor que puedes controlar de forma individual. Perfectos para señales y efectos visuales.</div>
+        </div>
+      </li>
+      <li>
+        <div class="feat-icon">🔊</div>
+        <div>
+          <div class="feat-title">Parlante y micrófono integrados</div>
+          <div class="feat-desc">Reproduce música, alertas y reconoce sonidos del ambiente. ¡Tu robot puede hablar y escuchar!</div>
+        </div>
+      </li>
+      <li>
+        <div class="feat-icon">📡</div>
+        <div>
+          <div class="feat-title">Conectividad WiFi integrada</div>
+          <div class="feat-desc">Conéctalo a internet para crear proyectos IoT, recibir datos del clima o enviar mensajes automáticos.</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- SPECS STRIP -->
+<div class="specs-strip">
+  <div class="inner">
+    <div class="spec-item reveal"><span class="spec-val">ESP32</span><span class="spec-key">Procesador</span></div>
+    <div class="spec-item reveal"><span class="spec-val">5</span><span class="spec-key">LEDs RGB</span></div>
+    <div class="spec-item reveal"><span class="spec-val">1.44"</span><span class="spec-key">Pantalla TFT</span></div>
+    <div class="spec-item reveal"><span class="spec-val">WiFi</span><span class="spec-key">+ Bluetooth</span></div>
+    <div class="spec-item reveal"><span class="spec-val">8</span><span class="spec-key">Sensores</span></div>
+    <div class="spec-item reveal"><span class="spec-val">mBlock</span><span class="spec-key">Software</span></div>
+    <div class="spec-item reveal"><span class="spec-val">USB-C</span><span class="spec-key">Conexión</span></div>
+  </div>
+</div>
+
+<!-- SENSORES -->
+<div class="sensors-bg" id="sensores">
+  <div class="inner">
+    <div class="sec-tag reveal" style="background:var(--cyan); color:var(--dark);">🔬 02 — Componentes</div>
+    <h2 class="section-title reveal">Sensores y componentes</h2>
+    <p class="section-desc reveal">El CyberPi incluye múltiples sensores que le permiten percibir el mundo a su alrededor. ¡Es como darle sentidos a una máquina!</p>
+
+    <div class="sensors-grid reveal">
+      <div class="sensor-card" style="background:linear-gradient(135deg,#7B2FFF,#1E90FF); color:#fff;">
+        <span class="sensor-emoji">💡</span>
+        <h3>Sensor de Luz</h3>
+        <p>Detecta la intensidad de la luz del ambiente. Útil para encender LEDs al oscurecer o controlar pantallas.</p>
+      </div>
+      <div class="sensor-card" style="background:linear-gradient(135deg,#FF6B35,#FFD600); color:#fff;">
+        <span class="sensor-emoji">🎵</span>
+        <h3>Sensor de Sonido</h3>
+        <p>Mide el nivel de ruido. Puedes usarlo para que tu robot reaccione a aplausos o al volumen de la voz.</p>
+      </div>
+      <div class="sensor-card" style="background:linear-gradient(135deg,#00C853,#00D4FF); color:#fff;">
+        <span class="sensor-emoji">🌡️</span>
+        <h3>Sensor de Temperatura</h3>
+        <p>Registra la temperatura del ambiente. Ideal para estaciones meteorológicas o alarmas de calor.</p>
+      </div>
+      <div class="sensor-card" style="background:linear-gradient(135deg,#FF3D9A,#7B2FFF); color:#fff;">
+        <span class="sensor-emoji">📐</span>
+        <h3>Giroscopio / IMU</h3>
+        <p>Detecta movimiento, inclinación y rotación en 3 ejes. Permite controlar el robot moviéndolo en el aire.</p>
+      </div>
+      <div class="sensor-card" style="background:linear-gradient(135deg,#1E90FF,#00C853); color:#fff;">
+        <span class="sensor-emoji">🧲</span>
+        <h3>Magnetómetro</h3>
+        <p>Detecta campos magnéticos como una brújula digital. Sabe hacia dónde apunta el norte.</p>
+      </div>
+      <div class="sensor-card" style="background:linear-gradient(135deg,#FFD600,#FF6B35); color:#fff;">
+        <span class="sensor-emoji">🎮</span>
+        <h3>Joystick + Botones</h3>
+        <p>Control físico integrado. Maneja tu robot, navega menús o controla juegos directamente desde el dispositivo.</p>
+      </div>
+      <div class="sensor-card" style="background:linear-gradient(135deg,#00D4FF,#7B2FFF); color:#fff;">
+        <span class="sensor-emoji">📡</span>
+        <h3>Infrarrojos (IR)</h3>
+        <p>Emisor y receptor IR para comunicación entre dispositivos. ¡Dos CyberPi pueden "hablarse" sin cables!</p>
+      </div>
+      <div class="sensor-card" style="background:linear-gradient(135deg,#FF3D9A,#FF6B35); color:#fff;">
+        <span class="sensor-emoji">🔊</span>
+        <h3>Altavoz integrado</h3>
+        <p>Reproduce tonos, música, alertas y efectos de sonido programables directamente desde el código.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRAMAR -->
+<section class="section" id="programar">
+  <div class="sec-tag reveal" style="background:var(--green);">💻 03 — Programación</div>
+  <h2 class="section-title reveal">¿Cómo se programa el <span style="color:var(--green)">CyberPi</span>?</h2>
+  <p class="section-desc reveal">Usamos <strong>mBlock 5</strong>, un software que permite programar con bloques visuales (como Scratch) o con código Python real. ¡Tú eliges!</p>
+
+  <div class="prog-grid reveal">
+    <div class="steps-list">
+      <div class="step" style="--color:#7B2FFF">
+        <div class="step-num">1</div>
+        <div>
+          <h4>Descarga mBlock 5</h4>
+          <p>Instala el software gratuito en tu computadora. Compatible con Windows, Mac y también funciona en el navegador.</p>
+        </div>
+      </div>
+      <div class="step" style="--color:#FF6B35">
+        <div class="step-num">2</div>
+        <div>
+          <h4>Conecta el CyberPi</h4>
+          <p>Usa el cable USB-C para conectar el CyberPi. mBlock lo detecta automáticamente y activa la comunicación.</p>
+        </div>
+      </div>
+      <div class="step" style="--color:#FF3D9A">
+        <div class="step-num">3</div>
+        <div>
+          <h4>Arrastra bloques o escribe código</h4>
+          <p>En modo bloques: arrastra instrucciones como piezas de Lego. En modo Python: escribe código real línea por línea.</p>
+        </div>
+      </div>
+      <div class="step" style="--color:#00C853">
+        <div class="step-num">4</div>
+        <div>
+          <h4>Sube el programa y prueba</h4>
+          <p>Haz clic en "Subir" y tu código corre en el CyberPi. ¡Instantáneo! Prueba, falla, corrige y vuelve a intentar.</p>
+        </div>
+      </div>
+      <div class="step" style="--color:#1E90FF">
+        <div class="step-num">5</div>
+        <div>
+          <h4>¡Comparte tu proyecto!</h4>
+          <p>Guarda tu proyecto, muéstralo a tus compañeros y sube tus creaciones a la comunidad de mBlock.</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="margin-bottom:14px; font-family:'Fredoka One',cursive; font-size:1rem; color:#555; letter-spacing:0.05em;">📝 Ejemplo en Python / MicroPython</div>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dot" style="background:#FF5F57"></div>
+          <div class="code-dot" style="background:#FFBD2E"></div>
+          <div class="code-dot" style="background:#28CA41"></div>
+          <span class="code-title">mi_proyecto.py — CyberPi</span>
+        </div>
+        <div class="code-body">
+          <div><span class="c-cmt"># 🤖 Mi primer programa con CyberPi</span></div>
+          <div><span class="c-kw">import</span> <span class="c-fn">cyberpi</span></div>
+          <div><span class="c-kw">import</span> <span class="c-fn">time</span></div>
+          <br>
+          <div><span class="c-cmt"># Mostrar mensaje en pantalla</span></div>
+          <div><span class="c-fn">cyberpi</span>.<span class="c-fn">display</span>.<span class="c-fn">show_label</span>(</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-str">"¡Hola Mundo!"</span>, <span class="c-num">16</span>, <span class="c-str">"top_mid"</span>)</div>
+          <br>
+          <div><span class="c-cmt"># Encender LEDs de colores</span></div>
+          <div><span class="c-fn">cyberpi</span>.<span class="c-fn">led</span>.<span class="c-fn">on</span>(<span class="c-str">"red"</span>, <span class="c-num">0</span>)</div>
+          <div><span class="c-fn">cyberpi</span>.<span class="c-fn">led</span>.<span class="c-fn">on</span>(<span class="c-str">"blue"</span>, <span class="c-num">1</span>)</div>
+          <br>
+          <div><span class="c-cmt"># Reproducir sonido de bienvenida</span></div>
+          <div><span class="c-fn">cyberpi</span>.<span class="c-fn">audio</span>.<span class="c-fn">play</span>(<span class="c-str">"Ringtone"</span>)</div>
+          <div><span class="c-fn">time</span>.<span class="c-fn">sleep</span>(<span class="c-num">2</span>)</div>
+          <br>
+          <div><span class="c-cmt"># Leer temperatura del sensor</span></div>
+          <div><span class="c-plain">temp = </span><span class="c-fn">cyberpi</span>.<span class="c-fn">get_temperature</span>()</div>
+          <div><span class="c-fn">cyberpi</span>.<span class="c-fn">display</span>.<span class="c-fn">show_label</span>(</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-fn">f</span><span class="c-str">"Temp: {temp}°C"</span>, <span class="c-num">14</span>)</div>
+        </div>
+      </div>
+      <div style="margin-top:16px; background:#EDE9FE; border-radius:14px; padding:16px 20px;">
+        <div style="font-weight:800; color:var(--purple); margin-bottom:4px; font-size:0.9rem;">💡 ¿Sabías que...?</div>
+        <div style="font-size:0.85rem; color:#555; font-weight:600;">También puedes programar con <strong>bloques visuales</strong> en mBlock 5, sin escribir una sola línea de código. ¡Ideal para comenzar!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ACTIVIDADES -->
+<div class="activities-bg" id="actividades">
+  <div class="inner">
+    <div class="sec-tag reveal">🚀 04 — Proyectos</div>
+    <h2 class="section-title reveal">Actividades y proyectos</h2>
+    <p class="section-desc reveal">¡Manos a la obra! Estas son las actividades que realizaremos durante la unidad. Cada una es un reto diferente.</p>
+
+    <div class="act-grid reveal">
+      <div class="act-card">
+        <span class="act-emoji">👋</span>
+        <div class="act-num">ACTIVIDAD 01</div>
+        <h3>¡Hola, CyberPi!</h3>
+        <p>Conecta tu CyberPi por primera vez, instala mBlock y programa tu primer mensaje en pantalla. ¡El clásico "Hola Mundo" de la robótica!</p>
+        <span class="act-tag">⏱ 20 minutos</span>
+      </div>
+      <div class="act-card">
+        <span class="act-emoji">🌈</span>
+        <div class="act-num">ACTIVIDAD 02</div>
+        <h3>Semáforo RGB</h3>
+        <p>Programa los 5 LEDs del CyberPi para simular un semáforo. Aprende a controlar colores, tiempos y secuencias con bucles.</p>
+        <span class="act-tag">⏱ 30 minutos</span>
+      </div>
+      <div class="act-card">
+        <span class="act-emoji">🌡️</span>
+        <div class="act-num">ACTIVIDAD 03</div>
+        <h3>Termómetro Digital</h3>
+        <p>Usa el sensor de temperatura para construir un termómetro que muestra la temperatura en pantalla y cambia color de LED según el valor.</p>
+        <span class="act-tag">⏱ 35 minutos</span>
+      </div>
+      <div class="act-card">
+        <span class="act-emoji">🎵</span>
+        <div class="act-num">ACTIVIDAD 04</div>
+        <h3>Piano Interactivo</h3>
+        <p>Usa el joystick y los botones para crear un piano virtual. Cada dirección reproduce una nota diferente. ¡Compondrás música con código!</p>
+        <span class="act-tag">⏱ 40 minutos</span>
+      </div>
+      <div class="act-card">
+        <span class="act-emoji">🚨</span>
+        <div class="act-num">ACTIVIDAD 05</div>
+        <h3>Alarma de Ruido</h3>
+        <p>Programa una alarma que detecte ruido fuerte con el micrófono y encienda LEDs rojos con sonido de alerta. ¡Tu primer sistema de seguridad!</p>
+        <span class="act-tag">⏱ 35 minutos</span>
+      </div>
+      <div class="act-card">
+        <span class="act-emoji">🤖</span>
+        <div class="act-num">PROYECTO FINAL</div>
+        <h3>Robot Interactivo</h3>
+        <p>Integra todo lo aprendido: sensores, LEDs, pantalla y sonido para crear un robot que reaccione al ambiente de forma inteligente.</p>
+        <span class="act-tag">⏱ 60 minutos</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GLOSSARY -->
+<section class="section" id="glosario">
+  <div class="sec-tag reveal" style="background:var(--blue);">📖 05 — Vocabulario</div>
+  <h2 class="section-title reveal">Glosario de robótica</h2>
+  <p class="section-desc reveal">Palabras clave que debes conocer para hablar como un verdadero robotista.</p>
+
+  <div class="glossary-grid reveal">
+    <div class="glos-card" style="--color:#7B2FFF">
+      <div class="glos-term">Robot</div>
+      <div class="glos-def">Máquina programable capaz de realizar tareas automáticamente o siguiendo instrucciones de un programa.</div>
+    </div>
+    <div class="glos-card" style="--color:#FF6B35">
+      <div class="glos-term">Sensor</div>
+      <div class="glos-def">Dispositivo que detecta información del entorno (luz, temperatura, sonido) y la convierte en señal eléctrica.</div>
+    </div>
+    <div class="glos-card" style="--color:#FF3D9A">
+      <div class="glos-term">Actuador</div>
+      <div class="glos-def">Componente que convierte señales eléctricas en acción física: motores, LEDs, parlantes, servo-motores.</div>
+    </div>
+    <div class="glos-card" style="--color:#00C853">
+      <div class="glos-term">Algoritmo</div>
+      <div class="glos-def">Conjunto de instrucciones ordenadas paso a paso que le dicen al robot exactamente qué hacer y cuándo.</div>
+    </div>
+    <div class="glos-card" style="--color:#1E90FF">
+      <div class="glos-term">Bucle (loop)</div>
+      <div class="glos-def">Instrucción que repite una acción muchas veces. Por ejemplo, hacer parpadear un LED 10 veces seguidas.</div>
+    </div>
+    <div class="glos-card" style="--color:#00D4FF">
+      <div class="glos-term">Variable</div>
+      <div class="glos-def">Espacio en la memoria del robot para guardar un dato que puede cambiar, como la temperatura actual.</div>
+    </div>
+    <div class="glos-card" style="--color:#FFD600">
+      <div class="glos-term">Condicional (if)</div>
+      <div class="glos-def">Instrucción que toma decisiones: "Si la temperatura supera 30°, entonces enciende el ventilador."</div>
+    </div>
+    <div class="glos-card" style="--color:#AEEA00">
+      <div class="glos-term">ESP32</div>
+      <div class="glos-def">Microcontrolador de bajo costo con WiFi y Bluetooth integrado. Es el "cerebro" del CyberPi.</div>
+    </div>
+    <div class="glos-card" style="--color:#FF6B35">
+      <div class="glos-term">MicroPython</div>
+      <div class="glos-def">Versión simplificada del lenguaje Python diseñada para correr en microcontroladores como el ESP32 del CyberPi.</div>
+    </div>
+    <div class="glos-card" style="--color:#7B2FFF">
+      <div class="glos-term">IoT</div>
+      <div class="glos-def">"Internet de las Cosas": conectar objetos cotidianos a internet para que envíen y reciban datos de forma remota.</div>
+    </div>
+    <div class="glos-card" style="--color:#FF3D9A">
+      <div class="glos-term">mBlock 5</div>
+      <div class="glos-def">Software de programación por bloques y Python creado para CyberPi y otros dispositivos Makeblock.</div>
+    </div>
+    <div class="glos-card" style="--color:#00C853">
+      <div class="glos-term">LED RGB</div>
+      <div class="glos-def">Diodo emisor de luz que puede producir cualquier color mezclando Rojo (R), Verde (G) y Azul (B).</div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<div class="quiz-outer" id="quiz">
+  <div style="max-width:1100px; margin:0 auto;">
+    <div class="sec-tag reveal" style="background:var(--pink);">🎯 06 — Evaluación</div>
+    <h2 class="section-title reveal" style="margin-bottom:40px;">¡Hora del <span style="color:var(--purple)">Quiz</span>! 🧠</h2>
+
+    <div class="quiz-box reveal">
+      <div id="qmain">
+        <div class="quiz-top">
+          <h3>🤖 Pregunta del reto</h3>
+          <div>
+            <div class="qprog-label" id="qcnt">1 / 8</div>
+            <div class="qprog-bar"><div class="qprog-fill" id="qfill"></div></div>
+          </div>
+        </div>
+        <div class="q-question" id="qtxt"></div>
+        <div class="q-opts" id="qopts"></div>
+        <div class="q-feedback" id="qfb"></div>
+        <button class="q-next" id="qnext" onclick="nextQ()">Siguiente pregunta →</button>
+      </div>
+
+      <div class="q-result" id="qresult">
+        <div class="r-emoji" id="remoji">🎉</div>
+        <div class="r-score" id="rscore"></div>
+        <div class="r-msg" id="rmsg"></div>
+        <button class="q-restart" onclick="restartQ()">↩ Intentar de nuevo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-emoji">🤖⚡🎨</div>
+  <h3>Robótica con CyberPi · 10° Grado</h3>
+  <p>Aprendemos, programamos y creamos juntos</p>
+  <p style="margin-top:10px; font-size:0.78rem;">¡El futuro lo construimos nosotros! 🚀</p>
+</footer>
+
+<script>
+// ─── CUSTOM CURSOR ───
+const cur = document.getElementById('cursor');
+const colors = ['#FF3D9A','#7B2FFF','#FF6B35','#1E90FF','#00C853','#FFD600'];
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+document.addEventListener('click', () => {
+  cur.style.transform = 'translate(-50%,-50%) scale(2)';
+  cur.style.background = colors[Math.floor(Math.random()*colors.length)];
+  setTimeout(() => cur.style.transform = 'translate(-50%,-50%) scale(1)', 200);
+});
+
+// ─── CONFETTI DOTS ───
+const bg = document.getElementById('confettiBg');
+const dotColors = ['#FFD600','#FF6B35','#FF3D9A','#7B2FFF','#1E90FF','#00C853','#00D4FF','#AEEA00'];
+for (let i=0; i<28; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  const s = Math.random()*20+8;
+  d.style.cssText = `
+    width:${s}px; height:${s}px;
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    background:${dotColors[Math.floor(Math.random()*dotColors.length)]};
+    opacity:${Math.random()*0.15+0.05};
+    --t:${(Math.random()*5+4).toFixed(1)}s;
+    animation-delay:${(Math.random()*4).toFixed(1)}s;
+  `;
+  bg.appendChild(d);
+}
+
+// ─── SCROLL REVEAL ───
+const revs = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((e,i) => {
+    if (e.isIntersecting) {
+      e.target.style.transitionDelay = (i*0.06)+'s';
+      e.target.classList.add('on');
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+revs.forEach(r => obs.observe(r));
+
+// ─── QUIZ ───
+const questions = [
+  {
+    q: "¿Qué tipo de microcontrolador usa el CyberPi como 'cerebro' principal?",
+    opts:["Arduino Mega","Raspberry Pi 4","ESP32","ATmega328"],
+    ans:2,
+    exp:"✅ ¡Correcto! El CyberPi usa un ESP32, con WiFi y Bluetooth integrados."
+  },
+  {
+    q: "¿Cuántos LEDs RGB programables tiene el CyberPi?",
+    opts:["3 LEDs","5 LEDs","8 LEDs","10 LEDs"],
+    ans:1,
+    exp:"✅ Exacto. El CyberPi tiene 5 LEDs RGB que puedes controlar individualmente."
+  },
+  {
+    q: "¿Qué software se usa principalmente para programar el CyberPi?",
+    opts:["Arduino IDE","Scratch 3.0","mBlock 5","Tinkercad"],
+    ans:2,
+    exp:"✅ ¡Muy bien! mBlock 5 permite programar con bloques visuales o código Python."
+  },
+  {
+    q: "¿Qué detecta el sensor de sonido del CyberPi?",
+    opts:["La temperatura","El nivel de ruido del ambiente","La distancia a objetos","El color de superficies"],
+    ans:1,
+    exp:"✅ ¡Correcto! El micrófono mide la intensidad del sonido en el ambiente."
+  },
+  {
+    q: "¿Qué significa 'LED RGB' en electrónica?",
+    opts:[
+      "Lámpara Eléctrica Digital - Rojo, Gris, Blanco",
+      "Diodo emisor de luz Rojo, Verde y Azul",
+      "Receptor de luz de larga distancia",
+      "Resistencia Eléctrica Digital"
+    ],
+    ans:1,
+    exp:"✅ ¡Perfecto! RGB = Red, Green, Blue. Mezclando estos tres colores se obtiene cualquier color."
+  },
+  {
+    q: "¿Qué es un 'bucle' (loop) en programación?",
+    opts:[
+      "Un error en el código",
+      "El cable USB de conexión",
+      "Una instrucción que repite acciones múltiples veces",
+      "Un tipo de sensor de movimiento"
+    ],
+    ans:2,
+    exp:"✅ ¡Exacto! Los bucles repiten instrucciones. Por ejemplo: parpadear un LED 10 veces."
+  },
+  {
+    q: "¿Qué detecta el giroscopio / IMU del CyberPi?",
+    opts:[
+      "La temperatura del ambiente",
+      "La intensidad de la luz",
+      "Movimiento, inclinación y rotación del dispositivo",
+      "La distancia a otros robots"
+    ],
+    ans:2,
+    exp:"✅ ¡Muy bien! El IMU detecta movimiento en 3 ejes. ¡Puedes controlar el robot moviéndolo!"
+  },
+  {
+    q: "¿Qué significa IoT en tecnología?",
+    opts:[
+      "Inteligencia Oficial Tecnológica",
+      "Internet de las Cosas (Internet of Things)",
+      "Instrucciones de Operación Técnica",
+      "Interfaz de Objetos Táctiles"
+    ],
+    ans:1,
+    exp:"✅ ¡Correcto! IoT = Internet of Things. Conectar objetos cotidianos a internet para enviar y recibir datos."
+  }
+];
+
+let cur2=0, score=0, answered=false;
+
+function loadQ(){
+  answered=false;
+  const q=questions[cur2];
+  document.getElementById('qtxt').textContent=q.q;
+  document.getElementById('qfb').textContent='';
+  document.getElementById('qfb').className='q-feedback';
+  document.getElementById('qnext').style.display='none';
+  document.getElementById('qcnt').textContent=`${cur2+1} / ${questions.length}`;
+  document.getElementById('qfill').style.width=`${(cur2/questions.length)*100}%`;
+  const ol=document.getElementById('qopts');
+  ol.innerHTML='';
+  const letters=['A','B','C','D'];
+  q.opts.forEach((opt,i)=>{
+    const b=document.createElement('button');
+    b.className='q-btn';
+    b.innerHTML=`<span class="qbadge">${letters[i]}</span>${opt}`;
+    b.onclick=()=>selectQ(i,b);
+    ol.appendChild(b);
+  });
+}
+
+function selectQ(i,btn){
+  if(answered)return;
+  answered=true;
+  const q=questions[cur2];
+  document.querySelectorAll('.q-btn').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(i===q.ans){
+    btn.classList.add('correct');
+    score++;
+    fb.textContent=q.exp;
+    fb.className='q-feedback ok';
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.q-btn')[q.ans].classList.add('correct');
+    fb.textContent='❌ '+q.exp.replace('✅ ','');
+    fb.className='q-feedback bad';
+  }
+  document.getElementById('qnext').style.display='inline-block';
+}
+
+function nextQ(){
+  cur2++;
+  if(cur2>=questions.length) showResult();
+  else loadQ();
+}
+
+function showResult(){
+  document.getElementById('qmain').style.display='none';
+  const res=document.getElementById('qresult');
+  res.style.display='block';
+  document.getElementById('rscore').textContent=`${score} / ${questions.length}`;
+  const msgs=[
+    [0,2,"🌱 ¡Sigue adelante! Repasa el material y vuelve a intentarlo."],
+    [3,4,"📚 ¡Buen intento! Vas bien. Un poco más de práctica y lo logras."],
+    [5,6,"⚡ ¡Muy bien! Tienes buena base en CyberPi y robótica."],
+    [7,7,"🚀 ¡Excelente! Casi perfecto. ¡Eres un crack de la robótica!"],
+    [8,8,"🏆 ¡PERFECTO! ¡Dominas el tema! ¡Futuro ingeniero de robots!"]
+  ];
+  const m=msgs.find(([a,b])=>score>=a&&score<=b);
+  document.getElementById('rmsg').textContent=m?m[2]:'';
+  document.getElementById('remoji').textContent=score>=7?'🏆':score>=5?'🚀':score>=3?'⚡':'📚';
+}
+
+function restartQ(){
+  cur2=0; score=0; answered=false;
+  document.getElementById('qmain').style.display='block';
+  document.getElementById('qresult').style.display='none';
+  loadQ();
+}
+
+loadQ();
+</script>
+</body>
+</html>
